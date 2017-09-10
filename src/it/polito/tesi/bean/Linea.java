@@ -1,4 +1,4 @@
-package it.polito.tesi.model;
+package it.polito.tesi.bean;
 
 public class Linea {
 

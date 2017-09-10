@@ -8,7 +8,7 @@ import com.mchange.v2.c3p0.DataSources;
 
 public class DBConnectCP { // DB connect con connection pooling
 
-	private static String jdbcURL = "jdbc:mysql://localhost/gtfs_gtt_torino_it?user=root";
+	private static String jdbcURL = "jdbc:mysql://localhost/GTFS_gtt?user=root";
 	private static DataSource ds;
 
 	public static Connection getConnectionCP() {
