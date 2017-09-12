@@ -3,7 +3,7 @@ package it.polito.tesi.bean;
 public class Linea {
 
 	private String agencyID;
-	private int id; 
+	private String id; 
 	private String description ;
 	private String shortName; 
 	private String longName; 
@@ -18,10 +18,10 @@ public class Linea {
 	public void setAgencyID(String agencyID) {
 		this.agencyID = agencyID;
 	}
-	public int getId() {
+	public String getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 	public String getDescription() {
@@ -67,7 +67,7 @@ public class Linea {
 		this.textColor = textColor;
 	}
 
-	public Linea(String agencyID, int id, String description, String shortName, String longName, int type, String url,
+	public Linea(String agencyID, String id, String description, String shortName, String longName, int type, String url,
 			String color, String textColor) {
 		super();
 		this.agencyID = agencyID;
@@ -85,7 +85,7 @@ public class Linea {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
 	@Override
@@ -97,7 +97,10 @@ public class Linea {
 		if (getClass() != obj.getClass())
 			return false;
 		Linea other = (Linea) obj;
-		if (id != other.id)
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
 			return false;
 		return true;
 	}

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DBConnect {
 
-	static private final String jdbcUrl = "jdbc:mysql://localhost/GTFS_gtt?user=root";
+	static private final String jdbcUrl = "jdbc:mysql://localhost/GTFS_sfm?user=root";
 	static private DBConnect instance = null;
 
 	private DBConnect() {
