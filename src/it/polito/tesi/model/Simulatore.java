@@ -3,6 +3,10 @@ import java.util.PriorityQueue;
 
 public class Simulatore {
 	
+//  parametri di simulazione
+//  modello del mondo
+//	misure in uscita
+	
 	private PriorityQueue<Evento> coda ;
 
 	public Simulatore() {
