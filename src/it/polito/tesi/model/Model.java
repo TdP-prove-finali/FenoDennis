@@ -71,8 +71,11 @@ public class Model {
 			}		
 			
 		}
-		System.out.println(grafo);
+//		System.out.println(grafo);
 
 	}
+	
+	
+	
 	
 }
