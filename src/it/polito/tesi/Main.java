@@ -11,14 +11,15 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("gtfs.fxml"));
-			BorderPane root = (BorderPane)loader.load();
-			
-			Model model = new Model(); 
-			
-			GtfsController controller = new GtfsController();
+
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("Gtfs.fxml"));
+			BorderPane root = (BorderPane) loader.load();
+
+			// Set the model
+			Model model = new Model();
+			GtfsController controller = loader.getController();
 			controller.setModel(model);
-			
+
 			Scene scene = new Scene(root);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);

@@ -16,23 +16,23 @@ public class TestGtfsDao {
 		
 		Map<String, Agenzia> agenzie = dao.getAllAgencies(); 
 		
-		for(Agenzia a : agenzie.values()) System.out.println(a.toString());
+//		for(Agenzia a : agenzie.values()) System.out.println(a.toString());
 		
 		Map<String, Linea> linee = dao.getAllRoutes(); 
 		
-		for(Linea l : linee.values()) System.out.println(l.toString());
+//		for(Linea l : linee.values()) System.out.println(l.toString());
 		
 		Map<String, Fermata> fermate = dao.getAllStops(); 
 		
-		for(Fermata f : fermate.values()) System.out.println(f.toString());
+//		for(Fermata f : fermate.values()) System.out.println(f.toString());
 		
 		Map<String, Servizio> servizi = dao.getAllServices(); 
 		
-		for(Servizio s : servizi.values()) System.out.println(s.toString());
+//		for(Servizio s : servizi.values()) System.out.println(s.toString());
 		
 		Map<String, Corsa> corse = dao.getAllTrips(linee, servizi);
 
-		for(Corsa c: corse.values()) System.out.println(c.toString());
+//		for(Corsa c: corse.values()) System.out.println(c.toString());
 		
 		dao.loadPassaggi(corse, fermate); 
 		

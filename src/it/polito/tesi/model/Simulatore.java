@@ -13,6 +13,11 @@ public class Simulatore {
 		this.coda = new PriorityQueue<Evento>();	
 	}
 	
-	
+	public void run(){
+			
+			while (!coda.isEmpty()){
+				Evento e = coda.poll() ;
+			}
+	}
 	
 }

@@ -106,7 +106,7 @@ public class Linea {
 	}
 	@Override
 	public String toString() {
-		return  agencyID + ": linea " + shortName ;
+		return  agencyID + ": linea " + id ;
 	}
 	
 }

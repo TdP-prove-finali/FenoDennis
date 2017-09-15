@@ -3,12 +3,11 @@ package it.polito.tesi.model;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jgrapht.WeightedGraph;
+import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -32,7 +31,7 @@ public class Model {
 	Map<String, Servizio> servizi ;
 	Map<String, Corsa> corse ;
 	
-	WeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo ;
+	DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo ;
 	
 	Map<Fermata, Set<FermataSuLinea>> fermateSuLinea ;
 	
@@ -51,6 +50,18 @@ public class Model {
 		this.corse = dao.getAllTrips(linee, servizi);		
 		dao.loadPassaggi(corse, fermate); 
 		
+		System.out.println("fermate "+fermate.values().size());
+		System.out.println("agenzie "+agenzie.values().size());
+		System.out.println("servizi "+servizi.values().size());
+		System.out.println("linee "+linee.values().size());
+		System.out.println("corse "+corse.values().size());
+		
+		int j = 0 ;
+		for(Corsa c : corse.values()){
+			j+=c.getPassaggi().size(); 
+		}
+		System.out.println("passaggi "+j);
+
 		this.fermateSuLinea = new HashMap<>();
 		for(Fermata f : this.fermate.values()) 
 			fermateSuLinea.put(f, new HashSet<FermataSuLinea>());
@@ -63,21 +74,23 @@ public class Model {
 		for (Corsa c : this.corse.values()){
 				
 			List<Passaggio> passaggi = c.getPassaggi() ;
-			
+			// aggiunta dei vertici
 			for(Passaggio p : passaggi){
 				FermataSuLinea fsl = new FermataSuLinea(p.getFermata(), c.getLinea()) ;
 				this.fermateSuLinea.get(p.getFermata()).add(fsl);
-				if(!grafo.containsVertex(fsl))
+				if(!grafo.containsVertex(fsl)){
 					grafo.addVertex(fsl);
+//					System.out.println(fsl.toString());
+				}
 				
 			}
-			
+			// aggiunta dei nodi
 			for(int i = 0 ; i < passaggi.size()-1 ; i++){
 				
 				FermataSuLinea fslP = new FermataSuLinea(passaggi.get(i).getFermata(), c.getLinea()) ;
 				FermataSuLinea fslA = new FermataSuLinea(passaggi.get(i+1).getFermata(), c.getLinea()) ;
 				
-				if (fslP != null && fslA != null) {
+				if (fslP != null && fslA != null && !fslP.equals(fslA)) {
 					
 					double velocita = 30;
 					double distanza = LatLngTool.distance(fslP.getPosition(), fslA.getPosition(), LengthUnit.KILOMETER);
@@ -100,11 +113,12 @@ public class Model {
 			for(FermataSuLinea fslA : fsl){
 				for(FermataSuLinea fslB : fsl){
 					
-					if (fslA != null && fslB != null) {
+					if (fslA != null && fslB != null && !fslA.equals(fslB)) {
 						
 						DefaultWeightedEdge link = grafo.addEdge(fslA, fslB);
 						if (link != null) {
 							grafo.setEdgeWeight(link, 60 * 5 ); // 5 minuti per andare da una banchina all'altra
+//							System.out.println(link.toString());
 						}
 					}
 				}
@@ -112,10 +126,12 @@ public class Model {
 			
 		}
 		System.out.println("Grafo creato: " + grafo.vertexSet().size() + " nodi, " + grafo.edgeSet().size() + " archi");
+		ConnectivityInspector<FermataSuLinea,DefaultWeightedEdge> ci = new ConnectivityInspector<FermataSuLinea,DefaultWeightedEdge>(grafo);
+		System.out.println(ci.isGraphConnected());
 
 	}
 	
-	public void calcolaPercorso(Fermata partenza, Fermata arrivo) {
+	public void calcolaPercorso(Fermata partenza, Fermata arrivo){
 
 		DijkstraShortestPath<FermataSuLinea, DefaultWeightedEdge> dijkstra;
 
@@ -142,41 +158,46 @@ public class Model {
 		pathEdgeList = bestPathEdgeList;
 		pathTempoTotale = bestPathTempoTotale;
 
-		if (pathEdgeList == null)
-			throw new RuntimeException("Non è stato creato un percorso.");
-		/*
-		// Nel calcolo del tempo non tengo conto della prima e dell'ultima
-		if (pathEdgeList.size() - 1 > 0) {
-			pathTempoTotale += (pathEdgeList.size() - 1) * 30;
-		}*/
+		if (pathEdgeList == null || pathEdgeList.size()==0)
+			System.out.println("Non è stato creato un percorso.");
+
 	}
 
 	public String getPercorsoEdgeList() {
-
-		if (pathEdgeList == null)
-			throw new RuntimeException("Non è stato creato un percorso.");
-
 		StringBuilder risultato = new StringBuilder();
-		risultato.append("Percorso:\n\n");
-/*
-		Linea lineaTemp = pathEdgeList.get(0).getLinea();
-		risultato.append("Prendo Linea: " + lineaTemp.getNome() + "\n[");
 
-		for (DefaultWeightedEdge edge : pathEdgeList) {
-			risultato.append(grafo.getEdgeTarget(edge).getName());
-
-			if (!edge.getLinea().equals(lineaTemp)) {
-				risultato.append("]\n\nCambio su Linea: " + edge.getLinea().getNome() + "\n[");
-				lineaTemp = edge.getLinea();
-
-			} else {
-				risultato.append(", ");
+		if (pathEdgeList == null || pathEdgeList.size()==0)
+			risultato.append("Non è stato creato un percorso.");
+		else{
+			
+			risultato.append("Percorso:\n\n");
+	
+			Linea lineaTemp = grafo.getEdgeSource(pathEdgeList.get(0)).getLinea();
+			risultato.append("Prendo Linea: " + lineaTemp.getShortName() + "\n[");
+	
+			for (DefaultWeightedEdge edge : pathEdgeList) {
+				risultato.append(grafo.getEdgeTarget(edge).getName());
+	
+				if (!grafo.getEdgeTarget(edge).getLinea().equals(lineaTemp)) {
+					risultato.append("]\n\nCambio su Linea: " + grafo.getEdgeTarget(edge).getLinea() + "\n[");
+					lineaTemp = grafo.getEdgeTarget(edge).getLinea();
+	
+				} else {
+					risultato.append(", ");
+				}
 			}
-		}*/
-		risultato.setLength(risultato.length() - 2);
-		risultato.append("]");
+			risultato.setLength(risultato.length() - 2);
+			risultato.append("]");
+		}
+			return risultato.toString();
+	}
 
-		return risultato.toString();
+	public Map<String, Fermata> getFermate() {
+		if(this.fermate==null){
+			GtfsDao dao = new GtfsDao();
+			this.fermate=dao.getAllStops();
+			}
+		return fermate;
 	}
 
 	public double getPercorsoTempoTotale() {
