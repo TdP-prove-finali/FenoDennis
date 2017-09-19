@@ -104,7 +104,7 @@ public class GtfsController {
 		lvArrivo.getItems().addAll(f);
 		lvLinea.getItems().addAll(l);
 		lvAgenzia.getItems().addAll(a);
-		model.creaGrafo(LocalDateTime.now());
+//		model.creaGrafo(LocalDateTime.now());
 		
 		
 	}
