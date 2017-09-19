@@ -1,6 +1,6 @@
 package it.polito.tesi.bean;
 
-public class Linea {
+public class Linea implements Comparable<Linea>{
 
 	private String agencyID;
 	private String id; 
@@ -107,6 +107,10 @@ public class Linea {
 	@Override
 	public String toString() {
 		return  agencyID + ": linea " + id ;
+	}
+	@Override
+	public int compareTo(Linea o) {
+		return this.id.compareTo(o.id);
 	}
 	
 }

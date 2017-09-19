@@ -1,6 +1,6 @@
 package it.polito.tesi.bean;
 
-public class Agenzia {
+public class Agenzia implements Comparable<Agenzia>{
 
 	  private String id;
 	  private String fareUrl;
@@ -105,6 +105,11 @@ public class Agenzia {
 	@Override
 	public String toString() {
 		return  id + "- " + name ;
+	}
+
+	@Override
+	public int compareTo(Agenzia o) {
+		return this.name.compareTo(o.name);
 	}
 	
 	

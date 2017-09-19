@@ -2,7 +2,7 @@ package it.polito.tesi.bean;
 
 import com.javadocmd.simplelatlng.LatLng;
 
-public class Fermata {
+public class Fermata implements Comparable<Fermata>{
 
 	private String agencyId ;
 	private String id ;
@@ -136,7 +136,12 @@ public class Fermata {
 
 	@Override
 	public String toString() {
-		return "Fermata " + code + " - " + name ;
+		return "Fermata " + id + " - " + name ;
+	}
+
+	@Override
+	public int compareTo(Fermata o) {
+		return this.name.compareTo(o.name);
 	}
 
 }
