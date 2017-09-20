@@ -59,5 +59,39 @@ public class Passaggio implements Comparable<Passaggio>{
 		return  fermata + ": " + oraArrivo + " - " + oraPartenza
 				+ " / " + sequenza ;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((fermata == null) ? 0 : fermata.hashCode());
+		result = prime * result + ((oraArrivo == null) ? 0 : oraArrivo.hashCode());
+		result = prime * result + sequenza;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Passaggio other = (Passaggio) obj;
+		if (fermata == null) {
+			if (other.fermata != null)
+				return false;
+		} else if (!fermata.equals(other.fermata))
+			return false;
+		if (oraArrivo == null) {
+			if (other.oraArrivo != null)
+				return false;
+		} else if (!oraArrivo.equals(other.oraArrivo))
+			return false;
+		if (sequenza != other.sequenza)
+			return false;
+		return true;
+	}
 	
 }

@@ -20,6 +20,10 @@ public class TestModel {
 		f.addAll(m.getFermate().values()) ;
 		System.out.println("size"+ f.size());
 		System.out.println("ok: "+(t2-t1));
+		m.Simula();
+		
+		
+		
 /*
 		for(Fermata a : f){
 			for(Fermata b : f){

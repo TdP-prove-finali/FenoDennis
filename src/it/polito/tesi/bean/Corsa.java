@@ -72,5 +72,30 @@ public class Corsa {
 	public String toString() {
 		return linea + ", capolinea:" + capolinea ;
 	}
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((tripId == null) ? 0 : tripId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Corsa other = (Corsa) obj;
+		if (tripId == null) {
+			if (other.tripId != null)
+				return false;
+		} else if (!tripId.equals(other.tripId))
+			return false;
+		return true;
+	}
+
 }

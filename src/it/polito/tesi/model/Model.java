@@ -40,7 +40,7 @@ public class Model {
 	private List<DefaultWeightedEdge> pathEdgeList = null;
 	private double pathTempoTotale = 0;
 	
-	List<Passaggio> passaggiSimulazione ; 
+	List<PassaggioCorsa> passaggiSimulazione ; 
 	
 	public Model() {
 
@@ -90,9 +90,9 @@ public class Model {
 					for(Passaggio p : passaggi){
 //						System.out.println(p.getOraPartenza().toSecondOfDay() + " / " + lt1.toSecondOfDay() + " / " + 
 //								(p.getOraPartenza().toSecondOfDay()-lt1.toSecondOfDay())+ " / " + (tempoSimulazione*3600) ) ;
-						int delta = p.getOraPartenza().toSecondOfDay()-lt1.toSecondOfDay() ;
+						int delta = p.getOraArrivo().toSecondOfDay()-lt1.toSecondOfDay() ;
 
-						if(delta>=0 && delta <= (3600*tempoSimulazione)) passaggiSimulazione.add(p) ;
+						if(delta>=0 && delta <= (3600*tempoSimulazione)) passaggiSimulazione.add(new PassaggioCorsa(p,c)) ;
 						
 							FermataSuLinea fsl = new FermataSuLinea(p.getFermata(), c.getLinea()) ;
 							this.fermateSuLinea.get(p.getFermata()).add(fsl);
@@ -105,7 +105,7 @@ public class Model {
 					
 					// aggiunta dei nodi
 					for(int i = 0 ; i < passaggi.size()-1 ; i++){
-						int delta = passaggi.get(i).getOraPartenza().toSecondOfDay()-lt1.toSecondOfDay() ;
+						int delta = passaggi.get(i).getOraArrivo().toSecondOfDay()-lt1.toSecondOfDay() ;
 						if ( delta <= tempoSimulazione*3600 && delta >= 0)
 						{
 							FermataSuLinea fslP = new FermataSuLinea(passaggi.get(i).getFermata(), c.getLinea()) ;
@@ -249,6 +249,10 @@ public class Model {
 	
 	public void Simula(){
 		Simulatore sim = new Simulatore(grafo, corse, passaggiSimulazione) ;
+		sim.run();
+		System.out.println("sod " + sim.getClientiSoddisfatti()) ;
+		System.out.println("parz " + sim.getClientiParzialmenteSoddisfatti()) ;
+		
 	}
 	
 }
