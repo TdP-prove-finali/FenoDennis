@@ -9,7 +9,8 @@ public class Evento implements Comparable<Evento>{
 
 	public enum EventType{
 		ARRIVO_FERMATA, // arriva gente alla fermata
-		SALITA_MEZZO	// gente sale sul treno 
+		SALITA_MEZZO,	// gente sale sul treno 
+		DISCESA_MEZZO
 	};
 	
 	private LocalTime dataOra ;

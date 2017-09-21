@@ -5,30 +5,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Random;
 
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import it.polito.tesi.bean.Corsa;
-import it.polito.tesi.bean.Passaggio;
 import it.polito.tesi.model.Evento.EventType;
 
 public class Simulatore {
 		
 //  parametri di simulazione
 	 
-	private int capienzaMezzo = 1700 ;	// numero di persone
-	private int tempoInStazione = 30 ; // in secondi
+	private int capienzaMezzo = 190 ;	// numero di persone
+	private int intervalloTempoArrivo = 1 ; // in secondi
+	private int numeroPersoneFermata = 10 ;
 	
-	private int numeroPersoneFermata = 1 ;
-	
-	private double probabilitaPermanenzaLinea;
-	private double probabilitaPermanenzaLineaFlusso;
+	private double probabilitaPermanenzaLinea = 0.5 ;
+	private double probabilitaPermanenzaLineaFlusso = 0.8 ;
+	private double probabilitaCambioLinea = 0.7 ; 
 	
 //  modello del mondo
 	
 	Map<FermataSuLinea, Treno> treni ; 
 	Map<FermataSuLinea, Integer> personeFermata ; 
+	Map<FermataSuLinea, Integer> personeParzIns ; 
 	DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo ;
 	Map<String, Corsa> corse ;
 	List<PassaggioCorsa> passaggiSimulazione ;
@@ -37,8 +38,8 @@ public class Simulatore {
 //	misure in uscita
 	
 	int clientiSoddisfatti ; 
-	int clientiParzialmenteSoddisfatti ;
-	int clientiInsoddisfatti ;
+	int clientiParzialmenteSoddisfatti ; // se vedono passare un treno aspettano quello dopo 
+	int clientiInsoddisfatti ;			 // al secondo treno vanno via
 	int clienti ;
 	
 	private PriorityQueue<Evento> coda ;
@@ -62,6 +63,7 @@ public class Simulatore {
 		
 		treni = new HashMap<>();
 		personeFermata = new HashMap<>();
+		personeParzIns = new HashMap<>();
 		
 		fermateSuLinea = new ArrayList<>() ;
 		
@@ -78,6 +80,7 @@ public class Simulatore {
 			fermateSuLinea.add(new FermataSuLinea(p.getFermata(), p.getC().getLinea())); 
 			
 			coda.add(new Evento(p.getOraArrivo(),p, EventType.SALITA_MEZZO)) ;
+			coda.add(new Evento(p.getOraPartenza(),p, EventType.DISCESA_MEZZO)) ;
 			
 			if(p.getOraArrivo().isBefore(min)){
 				min = p.getOraArrivo() ;
@@ -88,18 +91,21 @@ public class Simulatore {
 			
 		}
 		
-		for (int i = min.toSecondOfDay() ; i <= max.toSecondOfDay() ; i++){
+		for (int i = min.toSecondOfDay() ; i <= max.toSecondOfDay() ; i+= intervalloTempoArrivo){
 			coda.add(new Evento(LocalTime.ofSecondOfDay(i), null , EventType.ARRIVO_FERMATA)) ;
 		}
 		
 		for(FermataSuLinea fsl : fermateSuLinea){
 			personeFermata.put(fsl, 0) ;
+			personeParzIns.put(fsl, 0) ;
 		}
 
 	}
 
 	public void run(){
-			
+		
+		Random r = new Random () ;
+		
 			while (!coda.isEmpty()){
 				Evento e = coda.poll() ;
 //				System.out.println(e);
@@ -110,7 +116,7 @@ public class Simulatore {
 					
 					// se è nella stazione capolinea creo un nuovo treno
 					PassaggioCorsa pc = e.getPassaggio() ;
-					FermataSuLinea fsl = new FermataSuLinea(pc.getFermata(), pc.getC().getLinea()) ;
+					FermataSuLinea fsl = new FermataSuLinea(pc.getFermata(), pc.getC().getLinea()) ; // fermata di riferimento
 					
 					if(treni.get(fsl)==null){
 						treni.put(fsl, new Treno(0, capienzaMezzo)) ;
@@ -119,28 +125,57 @@ public class Simulatore {
 					int cap = treni.get(fsl).getCapienza() ;
 					int now = treni.get(fsl).getPasseggeriPresenti() ; 
 					
-					int pf = personeFermata.get(fsl) ; // persone attualmente alla fermata
+					int ppi = personeParzIns.get(fsl) ;
+					
+					if(ppi>0){ // c'è già qualcuno di insoddisfatto
+						// faccio avere loro la precedenza sul treno
+						
+						if(ppi <= (cap-now)){
+							treni.get(fsl).setPasseggeriPresenti(now+ppi);
+							personeParzIns.replace(fsl, 0) ; 
+							clientiParzialmenteSoddisfatti += ppi ;
+						}
+						else{
+							int fuori = ppi - (cap-now) ; 
+							treni.get(fsl).setPasseggeriPresenti(cap);
+							personeParzIns.replace(fsl, 0) ; // se ne vanno via
+							clientiParzialmenteSoddisfatti+= (cap-now) ;
+							clientiInsoddisfatti+=fuori ;
+						}
+						
+					}
+					
+					int pf = personeFermata.get(fsl) ; // persone attualmente alla fermata ancora soddisfatte
 					
 					if(pf <= (cap-now)){
 						treni.get(fsl).setPasseggeriPresenti(now+pf);
-						personeFermata.remove(fsl) ;
-						personeFermata.put(fsl, 0) ;
+						personeFermata.replace(fsl, 0) ; 
 						clientiSoddisfatti += pf ;
 					}
 					else{
 						int fuori = pf - (cap-now) ; 
 						treni.get(fsl).setPasseggeriPresenti(cap);
-						personeFermata.remove(fsl) ;
-						personeFermata.put(fsl, fuori) ;
+						personeFermata.replace(fsl, 0) ;
+						personeParzIns.replace(fsl, fuori) ;
 						clientiSoddisfatti+=(cap-now) ;
-						clientiParzialmenteSoddisfatti+=fuori ;
+//						clientiParzialmenteSoddisfatti+=fuori ; li gestisco dopo 
 					}
 					
 				break ;
+				
+				case DISCESA_MEZZO :
 					
+					PassaggioCorsa pc2 = e.getPassaggio() ;
+					FermataSuLinea fsl2 = new FermataSuLinea(pc2.getFermata(), pc2.getC().getLinea()) ;
+					
+					
+					
+				break ;
+				
 				case ARRIVO_FERMATA :
 					
-					int rand = (int) Math.random() * fermateSuLinea.size() ;
+					int rand = r.nextInt( fermateSuLinea.size() );
+					System.out.println(rand);
 					int k = personeFermata.get(fermateSuLinea.get(rand)) ;
 					k += numeroPersoneFermata ;
 					personeFermata.remove(fermateSuLinea.get(rand)) ;
@@ -168,6 +203,14 @@ public class Simulatore {
 
 	public void setClientiParzialmenteSoddisfatti(int clientiParzialmenteSoddisfatti) {
 		this.clientiParzialmenteSoddisfatti = clientiParzialmenteSoddisfatti;
+	}
+
+	public int getClientiInsoddisfatti() {
+		return clientiInsoddisfatti;
+	}
+
+	public void setClientiInsoddisfatti(int clientiInsoddisfatti) {
+		this.clientiInsoddisfatti = clientiInsoddisfatti;
 	}
 	
 }

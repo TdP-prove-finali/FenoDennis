@@ -13,7 +13,7 @@ public class TestModel {
 		long t1 = System.nanoTime();
 		Model m = new Model() ;
 		long t2 = System.nanoTime();
-		LocalDateTime ldt = LocalDateTime.now() ;
+		LocalDateTime ldt = LocalDateTime.of(2017, 6, 23, 15, 56, 32) ;
 		m.creaGrafo(ldt, 1);
 		
 		List<Fermata> f = new ArrayList<>() ;

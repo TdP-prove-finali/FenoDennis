@@ -252,7 +252,8 @@ public class Model {
 		sim.run();
 		System.out.println("sod " + sim.getClientiSoddisfatti()) ;
 		System.out.println("parz " + sim.getClientiParzialmenteSoddisfatti()) ;
-		
+		System.out.println("in " + sim.getClientiInsoddisfatti() ) ;
+
 	}
 	
 }
