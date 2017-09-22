@@ -39,7 +39,7 @@
                   <DatePicker fx:id="dataPicker" />
                   <ComboBox fx:id="comboOra" prefWidth="150.0" />
                   <ComboBox fx:id="comboMinuti" prefWidth="150.0" />
-                  <Button mnemonicParsing="false" onAction="#doSimula" text="Simula" />
+                  <Button mnemonicParsing="false" onAction="#doSimula" text="Crea il percorso" />
                </children>
             </HBox>
             <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
@@ -74,7 +74,7 @@
                <items>
                   <VBox spacing="10.0">
                      <children>
-                        <HBox alignment="CENTER" layoutX="10.0" layoutY="27.0" spacing="5.0">
+                        <HBox alignment="CENTER" spacing="10.0">
                            <children>
                               <Label prefHeight="17.0" prefWidth="115.0" text="Capienza mezzi" />
                               <TextField>
@@ -82,7 +82,7 @@
                                     <Insets right="5.0" />
                                  </padding>
                               </TextField>
-                              <Label layoutX="10.0" layoutY="10.0" text="Numero persone a fermata">
+                              <Label alignment="CENTER" layoutX="10.0" layoutY="10.0" text="Numero persone per fermata">
                                  <HBox.margin>
                                     <Insets top="10.0" />
                                  </HBox.margin></Label>

@@ -54,17 +54,17 @@ public class Model {
 		this.corse = dao.getAllTrips(linee, servizi);		
 		dao.loadPassaggi(corse, fermate); 
 		
-		System.out.println("fermate "+fermate.values().size());
-		System.out.println("agenzie "+agenzie.values().size());
-		System.out.println("servizi "+servizi.values().size());
-		System.out.println("linee "+linee.values().size());
-		System.out.println("corse "+corse.values().size());
+//		System.out.println("fermate "+fermate.values().size());
+//		System.out.println("agenzie "+agenzie.values().size());
+//		System.out.println("servizi "+servizi.values().size());
+//		System.out.println("linee "+linee.values().size());
+//		System.out.println("corse "+corse.values().size());
 		
 		int j = 0 ;
 		for(Corsa c : corse.values()){
 			j+=c.getPassaggi().size(); 
 		}
-		System.out.println("passaggi "+j);
+//		System.out.println("passaggi "+j);
 
 		this.fermateSuLinea = new HashMap<>();
 		for(Fermata f : this.fermate.values()) 
@@ -116,7 +116,7 @@ public class Model {
 								double velocita = 30;
 								double distanza = LatLngTool.distance(fslP.getPosition(), fslA.getPosition(), LengthUnit.KILOMETER);
 								double tempo = (distanza / velocita) * 60 * 60;
-								System.out.println(fslP + " / " + fslA);
+//								System.out.println(fslP + " / " + fslA);
 								// Aggiungo un arco pesato tra le due fermate
 								DefaultWeightedEdge link = grafo.addEdge(fslP, fslA);
 								if (link != null) {
@@ -128,7 +128,7 @@ public class Model {
 					
 			}//end if day
 		}
-		System.out.println("Grafo creato: " + grafo.vertexSet().size() + " nodi, " + grafo.edgeSet().size() + " archi");
+//		System.out.println("Grafo creato: " + grafo.vertexSet().size() + " nodi, " + grafo.edgeSet().size() + " archi");
 
 		// aggiungo i collegamenti da una parte all'altra della stazione
 		for (Set<FermataSuLinea> fsl : fermateSuLinea.values()){
@@ -148,9 +148,9 @@ public class Model {
 			}
 			
 		}
-		System.out.println("Grafo creato: " + grafo.vertexSet().size() + " nodi, " + grafo.edgeSet().size() + " archi");
+//		System.out.println("Grafo creato: " + grafo.vertexSet().size() + " nodi, " + grafo.edgeSet().size() + " archi");
 		ConnectivityInspector<FermataSuLinea,DefaultWeightedEdge> ci = new ConnectivityInspector<FermataSuLinea,DefaultWeightedEdge>(grafo);
-		System.out.println(ci.isGraphConnected());
+//		System.out.println(ci.isGraphConnected());
 
 	}
 	
@@ -181,16 +181,13 @@ public class Model {
 		pathEdgeList = bestPathEdgeList;
 		pathTempoTotale = bestPathTempoTotale;
 
-		if (pathEdgeList == null || pathEdgeList.size()==0)
-			System.out.println("Non è stato creato un percorso.");
-
 	}
 
 	public String getPercorsoEdgeList() {
 		StringBuilder risultato = new StringBuilder();
 
 		if (pathEdgeList == null || pathEdgeList.size()==0)
-			;//risultato.append("Non è stato creato un percorso.");
+			risultato.append("Non è stato creato un percorso.");
 		else{
 			
 			risultato.append("Percorso:\n\n");
@@ -225,8 +222,8 @@ public class Model {
 
 	public double getPercorsoTempoTotale() {
 
-		if (pathEdgeList == null)
-			throw new RuntimeException("Non è stato creato un percorso.");
+		if (pathEdgeList == null || pathEdgeList.size()==0)
+			return -1 ;
 
 		return pathTempoTotale;
 	}
@@ -248,12 +245,17 @@ public class Model {
 	}
 	
 	public void Simula(){
-		Simulatore sim = new Simulatore(grafo, corse, passaggiSimulazione, fermateSuLinea) ;
-		sim.run();
-		System.out.println("sod " + sim.getClientiSoddisfatti()) ;
-		System.out.println("parz " + sim.getClientiParzialmenteSoddisfatti()) ;
-		System.out.println("in " + sim.getClientiInsoddisfatti() ) ;
-
+		
+		if (pathEdgeList == null || pathEdgeList.size()==0)
+		{
+			System.out.println("noo");
+		}else{
+			Simulatore sim = new Simulatore(grafo, corse, passaggiSimulazione, fermateSuLinea) ;
+			sim.run();
+			System.out.println("sod " + sim.getClientiSoddisfatti()) ;
+			System.out.println("parz " + sim.getClientiParzialmenteSoddisfatti()) ;
+			System.out.println("in " + sim.getClientiInsoddisfatti() ) ;
+		}
 	}
 	
 }

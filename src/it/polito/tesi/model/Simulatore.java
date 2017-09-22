@@ -9,6 +9,7 @@ import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
 
+import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
@@ -53,7 +54,7 @@ public class Simulatore {
 	}
 	
 	public Simulatore(DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo,
-			Map<String, Corsa> corse, List<PassaggioCorsa> passaggiSimulazione, Map<Fermata, Set<FermataSuLinea>> fermateSulaLinea) {
+			Map<String, Corsa> corse, List<PassaggioCorsa> passaggiSimulazione, Map<Fermata, Set<FermataSuLinea>> fermateSullaLinea) {
 		
 		this.grafo = grafo ;
 		this.corse = corse ;
@@ -168,6 +169,17 @@ public class Simulatore {
 					
 					// devo gestire lo spostamento del treno
 					
+					List<FermataSuLinea> vicini = Graphs.successorListOf(this.grafo, fsl) ; 
+					// se fanno parte della stessa linea.. teoricamente dovrebbe essercene solo 1, però faccio il controllo
+					System.out.println(vicini.size());
+					
+					for(FermataSuLinea fslSuccessiva : vicini){
+						if(fslSuccessiva.getLinea().equals(fsl)){
+							treni.put(fslSuccessiva, new Treno(treni.get(fsl).getPasseggeriPresenti(), capienzaMezzo)) ;
+							treni.remove(fsl) ;
+						}
+					}
+					
 					
 				break ;
 				
@@ -183,21 +195,22 @@ public class Simulatore {
 //					int cap2 = treni.get(fsl2).getCapienza() ;
 					int now2 = treni.get(fsl2).getPasseggeriPresenti() ; 
 					
-					int dentro = (int) Math.round( now2 * this.probabilitaCambioLinea ) ;
-					
-					Set<FermataSuLinea> corrispondenze = fermateSullaLinea.get(fsl2) ; 
-					treni.get(fsl2).setPasseggeriPresenti(dentro) ; // i passeggeri scendono dal mezzo
+					int dentro = (int) Math.round( now2 * this.probabilitaPermanenzaLinea ) ;
 
+					System.out.println(fermateSullaLinea.get(pc2.getFermata()));
+
+					Set<FermataSuLinea> corrispondenze = fermateSullaLinea.get(pc2.getFermata()) ; 
+					treni.get(fsl2).setPasseggeriPresenti(dentro) ; // i passeggeri scendono dal mezzo
+					
 					if(corrispondenze.size()>1){ // fermata di scambio
 						corrispondenze.remove(fsl2) ;
+						int smista = (int) Math.round( (now2-dentro) * this.probabilitaCambioLinea );
 						
 						for(FermataSuLinea f : corrispondenze){
-							
+							if(personeFermata.get(f)!=null) 
+								personeFermata.replace(f, (int) (personeFermata.get(f)-(smista/corrispondenze.size())) ) ;
 						}
-						
-					}else{ // i passeggeri escono dalla rete di trasporti
 					}
-					
 					
 				break ;
 				

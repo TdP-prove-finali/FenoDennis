@@ -22,17 +22,13 @@ public class TestModel {
 		System.out.println("ok: "+(t2-t1));
 		m.Simula();
 		
-		
-		
-/*
 		for(Fermata a : f){
 			for(Fermata b : f){
 				m.calcolaPercorso(a, b);
-				//System.out.println(a.toString() + " - " + m.getPercorsoEdgeList() + " - " + b.toString());
+				System.out.println(m.getPercorsoEdgeList());
 
 			}
 		}
-	*/	
 	}
 
 }
