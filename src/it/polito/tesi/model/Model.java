@@ -248,7 +248,7 @@ public class Model {
 	}
 	
 	public void Simula(){
-		Simulatore sim = new Simulatore(grafo, corse, passaggiSimulazione) ;
+		Simulatore sim = new Simulatore(grafo, corse, passaggiSimulazione, fermateSuLinea) ;
 		sim.run();
 		System.out.println("sod " + sim.getClientiSoddisfatti()) ;
 		System.out.println("parz " + sim.getClientiParzialmenteSoddisfatti()) ;

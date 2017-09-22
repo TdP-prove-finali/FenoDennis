@@ -1,4 +1,5 @@
 package it.polito.tesi.model;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,11 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
+import java.util.Set;
 
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import it.polito.tesi.bean.Corsa;
+import it.polito.tesi.bean.Fermata;
 import it.polito.tesi.model.Evento.EventType;
 
 public class Simulatore {
@@ -23,7 +26,7 @@ public class Simulatore {
 	
 	private double probabilitaPermanenzaLinea = 0.5 ;
 	private double probabilitaPermanenzaLineaFlusso = 0.8 ;
-	private double probabilitaCambioLinea = 0.7 ; 
+	private double probabilitaCambioLinea = 0.7 ; // la probabilità che venga cambiata la linea piuttosto che arrivo a destinazione, in una fermata di intercambio
 	
 //  modello del mondo
 	
@@ -34,6 +37,7 @@ public class Simulatore {
 	Map<String, Corsa> corse ;
 	List<PassaggioCorsa> passaggiSimulazione ;
 	List<FermataSuLinea> fermateSuLinea;
+	Map<Fermata, Set<FermataSuLinea>> fermateSullaLinea ;
 
 //	misure in uscita
 	
@@ -49,11 +53,12 @@ public class Simulatore {
 	}
 	
 	public Simulatore(DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo,
-			Map<String, Corsa> corse, List<PassaggioCorsa> passaggiSimulazione) {
+			Map<String, Corsa> corse, List<PassaggioCorsa> passaggiSimulazione, Map<Fermata, Set<FermataSuLinea>> fermateSulaLinea) {
 		
 		this.grafo = grafo ;
 		this.corse = corse ;
 		this.passaggiSimulazione = passaggiSimulazione ;
+		this.fermateSullaLinea = fermateSullaLinea ;
 		
 		this.coda = new PriorityQueue<Evento>();	
 		
@@ -79,8 +84,8 @@ public class Simulatore {
 			
 			fermateSuLinea.add(new FermataSuLinea(p.getFermata(), p.getC().getLinea())); 
 			
-			coda.add(new Evento(p.getOraArrivo(),p, EventType.SALITA_MEZZO)) ;
-			coda.add(new Evento(p.getOraPartenza(),p, EventType.DISCESA_MEZZO)) ;
+			coda.add(new Evento(p.getOraArrivo(),p, EventType.DISCESA_MEZZO)) ;
+			coda.add(new Evento(LocalTime.ofSecondOfDay( p.getOraPartenza().toSecondOfDay()+5) ,p, EventType.SALITA_MEZZO)) ;
 			
 			if(p.getOraArrivo().isBefore(min)){
 				min = p.getOraArrivo() ;
@@ -161,6 +166,9 @@ public class Simulatore {
 //						clientiParzialmenteSoddisfatti+=fuori ; li gestisco dopo 
 					}
 					
+					// devo gestire lo spostamento del treno
+					
+					
 				break ;
 				
 				case DISCESA_MEZZO :
@@ -168,6 +176,27 @@ public class Simulatore {
 					PassaggioCorsa pc2 = e.getPassaggio() ;
 					FermataSuLinea fsl2 = new FermataSuLinea(pc2.getFermata(), pc2.getC().getLinea()) ;
 					
+					if(treni.get(fsl2)==null){
+						treni.put(fsl2, new Treno(0, capienzaMezzo)) ;
+					}
+					
+//					int cap2 = treni.get(fsl2).getCapienza() ;
+					int now2 = treni.get(fsl2).getPasseggeriPresenti() ; 
+					
+					int dentro = (int) Math.round( now2 * this.probabilitaCambioLinea ) ;
+					
+					Set<FermataSuLinea> corrispondenze = fermateSullaLinea.get(fsl2) ; 
+					treni.get(fsl2).setPasseggeriPresenti(dentro) ; // i passeggeri scendono dal mezzo
+
+					if(corrispondenze.size()>1){ // fermata di scambio
+						corrispondenze.remove(fsl2) ;
+						
+						for(FermataSuLinea f : corrispondenze){
+							
+						}
+						
+					}else{ // i passeggeri escono dalla rete di trasporti
+					}
 					
 					
 				break ;
