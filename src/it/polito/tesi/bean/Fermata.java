@@ -29,6 +29,10 @@ public class Fermata implements Comparable<Fermata>{
 		this.locationType = locationType;
 	}
 
+	public Fermata(String id2) {
+		this.id = id2;
+	}
+
 	public String getAgencyId() {
 		return agencyId;
 	}

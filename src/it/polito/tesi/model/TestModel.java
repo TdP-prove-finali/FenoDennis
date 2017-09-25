@@ -14,21 +14,21 @@ public class TestModel {
 		Model m = new Model() ;
 		long t2 = System.nanoTime();
 		LocalDateTime ldt = LocalDateTime.of(2017, 6, 23, 15, 56, 32) ;
-		m.creaGrafo(ldt, 1);
+		m.creaGrafo(ldt, 1,true);
 		
 		List<Fermata> f = new ArrayList<>() ;
 		f.addAll(m.getFermate().values()) ;
 		System.out.println("size"+ f.size());
 		System.out.println("ok: "+(t2-t1));
-		m.Simula();
-		
+//		m.Simula();
+		/*
 		for(Fermata a : f){
 			for(Fermata b : f){
 				m.calcolaPercorso(a, b);
 				System.out.println(m.getPercorsoEdgeList());
 
 			}
-		}
+		}*/
 	}
 
 }

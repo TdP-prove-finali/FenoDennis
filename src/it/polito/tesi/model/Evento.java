@@ -1,9 +1,6 @@
 package it.polito.tesi.model;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-
-import it.polito.tesi.bean.Passaggio;
 
 public class Evento implements Comparable<Evento>{
 

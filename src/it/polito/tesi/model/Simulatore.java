@@ -1,8 +1,8 @@
 package it.polito.tesi.model;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -13,39 +13,45 @@ import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
-import it.polito.tesi.bean.Corsa;
 import it.polito.tesi.bean.Fermata;
+import it.polito.tesi.bean.Linea;
 import it.polito.tesi.model.Evento.EventType;
 
 public class Simulatore {
 		
 //  parametri di simulazione
 	 
-	private int capienzaMezzo = 190 ;	// numero di persone
-	private int intervalloTempoArrivo = 1 ; // in secondi
-	private int numeroPersoneFermata = 10 ;
+	private int capienzaMezzo ;	// numero di persone
+	private int intervalloTempoArrivo ; // in secondi
+	private int numeroPersoneFermata ;
 	
-	private double probabilitaPermanenzaLinea = 0.5 ;
-	private double probabilitaPermanenzaLineaFlusso = 0.8 ;
-	private double probabilitaCambioLinea = 0.7 ; // la probabilità che venga cambiata la linea piuttosto che arrivo a destinazione, in una fermata di intercambio
-	
+	private double probabilitaPermanenzaLinea ;
+	private double probabilitaPermanenzaLineaFlusso ;
+	private double probabilitaCambioLinea ; // la probabilità che venga cambiata la linea piuttosto che arrivo a destinazione, in una fermata di intercambio
+	private double coefficienteFlusso ;
 //  modello del mondo
 	
-	Map<FermataSuLinea, Treno> treni ; 
-	Map<FermataSuLinea, Integer> personeFermata ; 
-	Map<FermataSuLinea, Integer> personeParzIns ; 
-	DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo ;
-	Map<String, Corsa> corse ;
-	List<PassaggioCorsa> passaggiSimulazione ;
-	List<FermataSuLinea> fermateSuLinea;
-	Map<Fermata, Set<FermataSuLinea>> fermateSullaLinea ;
+	private Map<FermataSuLinea, Treno> treni ;
+	
+	private Map<FermataSuLinea, Integer> personeFermata ; 
+	private Map<FermataSuLinea, Integer> personeParzIns ; 
+	private DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo ;
+	private Map<String, Linea> linee ;
+	private List<PassaggioCorsa> passaggiSimulazione ;
+	private List<FermataSuLinea> fermateSuLinea;
+	private Map<Fermata, Set<FermataSuLinea>> fermateSullaLinea ;
 
+	private Set<FermataSuLinea> flusso ; 
+	
 //	misure in uscita
 	
-	int clientiSoddisfatti ; 
-	int clientiParzialmenteSoddisfatti ; // se vedono passare un treno aspettano quello dopo 
-	int clientiInsoddisfatti ;			 // al secondo treno vanno via
-	int clienti ;
+	private int clientiSoddisfatti ; 
+	private int clientiParzialmenteSoddisfatti ; // se vedono passare un treno aspettano quello dopo 
+	private int clientiInsoddisfatti ;			 // al secondo treno vanno via
+	
+	private Map<Fermata, Integer> soddFermata ; 
+	private Map<Linea, Integer> soddLinea ; 
+
 	
 	private PriorityQueue<Evento> coda ;
 	
@@ -54,10 +60,21 @@ public class Simulatore {
 	}
 	
 	public Simulatore(DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo,
-			Map<String, Corsa> corse, List<PassaggioCorsa> passaggiSimulazione, Map<Fermata, Set<FermataSuLinea>> fermateSullaLinea) {
+			Map<String, Linea> linee, List<PassaggioCorsa> passaggiSimulazione, 
+			Map<Fermata, Set<FermataSuLinea>> fermateSullaLinea, List<DefaultWeightedEdge> pathEdgeList, 
+			int capienza, int nPersFermata, int intervallo, 
+			double probLinea, double probFlusso, double probCambio, double coefficiente) {
+		
+		this.capienzaMezzo = capienza ;
+		this.numeroPersoneFermata = nPersFermata ; 
+		this.intervalloTempoArrivo = intervallo ; 
+		this.probabilitaPermanenzaLinea = probLinea ;
+		this.probabilitaPermanenzaLineaFlusso = probFlusso ;
+		this.probabilitaCambioLinea = probCambio ;
+		this.coefficienteFlusso = coefficiente ;
 		
 		this.grafo = grafo ;
-		this.corse = corse ;
+		this.linee = linee ;
 		this.passaggiSimulazione = passaggiSimulazione ;
 		this.fermateSullaLinea = fermateSullaLinea ;
 		
@@ -71,7 +88,23 @@ public class Simulatore {
 		personeFermata = new HashMap<>();
 		personeParzIns = new HashMap<>();
 		
+		// per i grafici
+		soddFermata = new HashMap<>();; 
+		soddLinea = new HashMap<>();; 
+		
 		fermateSuLinea = new ArrayList<>() ;
+		
+		if(pathEdgeList != null){
+			
+			flusso = new HashSet<FermataSuLinea>() ;
+			for(DefaultWeightedEdge dwe : pathEdgeList){
+				if(flusso.contains(grafo.getEdgeSource(dwe)))
+					flusso.add(grafo.getEdgeSource(dwe));
+				if(flusso.contains(grafo.getEdgeTarget(dwe)))
+					flusso.add(grafo.getEdgeTarget(dwe));
+			}
+			
+		}
 		
 		creaEventi();
 		
@@ -104,6 +137,13 @@ public class Simulatore {
 		for(FermataSuLinea fsl : fermateSuLinea){
 			personeFermata.put(fsl, 0) ;
 			personeParzIns.put(fsl, 0) ;
+		}
+		
+		for(Linea l : linee.values()){
+			soddLinea.put(l, 0) ;
+		}
+		for(Fermata f : fermateSullaLinea.keySet()){
+			soddFermata.put(f, 0) ;
 		}
 
 	}
@@ -149,6 +189,13 @@ public class Simulatore {
 							clientiInsoddisfatti+=fuori ;
 						}
 						
+						Fermata f = new Fermata(fsl.getId() ) ;
+						
+						// sulla fermata
+						soddFermata.replace(f, soddFermata.get(f) +ppi ); 
+						// sulla linea
+						soddLinea.replace(fsl.getLinea(), soddLinea.get(fsl.getLinea())+ppi) ;
+						
 					}
 					
 					int pf = personeFermata.get(fsl) ; // persone attualmente alla fermata ancora soddisfatte
@@ -171,7 +218,7 @@ public class Simulatore {
 					
 					List<FermataSuLinea> vicini = Graphs.successorListOf(this.grafo, fsl) ; 
 					// se fanno parte della stessa linea.. teoricamente dovrebbe essercene solo 1, però faccio il controllo
-					System.out.println(vicini.size());
+//					System.out.println(vicini.size());
 					
 					for(FermataSuLinea fslSuccessiva : vicini){
 						if(fslSuccessiva.getLinea().equals(fsl)){
@@ -195,9 +242,14 @@ public class Simulatore {
 //					int cap2 = treni.get(fsl2).getCapienza() ;
 					int now2 = treni.get(fsl2).getPasseggeriPresenti() ; 
 					
-					int dentro = (int) Math.round( now2 * this.probabilitaPermanenzaLinea ) ;
+					int dentro = 0 ;
+					if(flusso!=null && flusso.contains(fsl2)){
+						 dentro = (int) Math.round( now2 * this.probabilitaPermanenzaLineaFlusso ) ;
+					}else{
+						dentro = (int) Math.round( now2 * this.probabilitaPermanenzaLinea ) ;
+					}
 
-					System.out.println(fermateSullaLinea.get(pc2.getFermata()));
+//					System.out.println(fermateSullaLinea.get(pc2.getFermata()));
 
 					Set<FermataSuLinea> corrispondenze = fermateSullaLinea.get(pc2.getFermata()) ; 
 					treni.get(fsl2).setPasseggeriPresenti(dentro) ; // i passeggeri scendono dal mezzo
@@ -217,9 +269,16 @@ public class Simulatore {
 				case ARRIVO_FERMATA :
 					
 					int rand = r.nextInt( fermateSuLinea.size() );
-					System.out.println(rand);
-					int k = personeFermata.get(fermateSuLinea.get(rand)) ;
-					k += numeroPersoneFermata ;
+//					System.out.println(rand);
+					FermataSuLinea fsl3 = fermateSuLinea.get(rand) ;
+					int k = personeFermata.get(fsl3) ;
+					
+					if(flusso!=null && flusso.contains(fsl3)){
+						k+= (int)Math.round(numeroPersoneFermata*coefficienteFlusso) ;
+					}else{
+						k += numeroPersoneFermata ;
+					}
+					
 					personeFermata.remove(fermateSuLinea.get(rand)) ;
 					personeFermata.put(fermateSuLinea.get(rand), k) ;
 						
@@ -235,24 +294,20 @@ public class Simulatore {
 		return clientiSoddisfatti;
 	}
 
-	public void setClientiSoddisfatti(int clientiSoddisfatti) {
-		this.clientiSoddisfatti = clientiSoddisfatti;
-	}
-
 	public int getClientiParzialmenteSoddisfatti() {
 		return clientiParzialmenteSoddisfatti;
-	}
-
-	public void setClientiParzialmenteSoddisfatti(int clientiParzialmenteSoddisfatti) {
-		this.clientiParzialmenteSoddisfatti = clientiParzialmenteSoddisfatti;
 	}
 
 	public int getClientiInsoddisfatti() {
 		return clientiInsoddisfatti;
 	}
+	
+	public Map<Fermata, Integer> getSoddFermata() {
+		return soddFermata;
+	}
 
-	public void setClientiInsoddisfatti(int clientiInsoddisfatti) {
-		this.clientiInsoddisfatti = clientiInsoddisfatti;
+	public Map<Linea, Integer> getSoddLinea() {
+		return soddLinea;
 	}
 	
 }

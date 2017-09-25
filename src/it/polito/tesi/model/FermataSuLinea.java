@@ -19,7 +19,7 @@ public class FermataSuLinea extends Fermata{
 				f.getDirection(), f.getPosition(), f.getZoneId(), f.getUrl(), f.getLocationType());
 		this.setLinea(l); 
 	}
-
+	
 	public Linea getLinea() {
 		return linea;
 	}

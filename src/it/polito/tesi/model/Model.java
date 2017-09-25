@@ -3,6 +3,7 @@ package it.polito.tesi.model;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,8 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import com.javadocmd.simplelatlng.LatLngTool;
 import com.javadocmd.simplelatlng.util.LengthUnit;
 
+import it.polito.tesi.FermataNumero;
+import it.polito.tesi.LineaNumero;
 import it.polito.tesi.bean.Agenzia;
 import it.polito.tesi.bean.Corsa;
 import it.polito.tesi.bean.Fermata;
@@ -27,22 +30,27 @@ import it.polito.tesi.dao.GtfsDao;
 
 public class Model {
 
-	Map<String, Agenzia> agenzie ;
-	Map<String, Linea> linee ; 	
-	Map<String, Fermata> fermate ;
-	Map<String, Servizio> servizi ;
-	Map<String, Corsa> corse ;
+	private	Map<String, Agenzia> agenzie ;
+	private	Map<String, Linea> linee ; 	
+	private	Map<String, Fermata> fermate ;
+	private Map<String, Servizio> servizi ;
+	private Map<String, Corsa> corse ;
 	
-	DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo ;
+	private DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge> grafo ;
 	
-	Map<Fermata, Set<FermataSuLinea>> fermateSuLinea ;
+	private Map<Fermata, Set<FermataSuLinea>> fermateSuLinea ;
 	
 	private List<DefaultWeightedEdge> pathEdgeList = null;
 	private double pathTempoTotale = 0;
 	
-	List<PassaggioCorsa> passaggiSimulazione ; 
+	private List<PassaggioCorsa> passaggiSimulazione ; 
+	
+	private Simulatore sim ;
 	
 	public Model() {
+	}
+	
+	public void creaModel() {
 
 		// caricamento dati in memoria
 		
@@ -60,10 +68,10 @@ public class Model {
 //		System.out.println("linee "+linee.values().size());
 //		System.out.println("corse "+corse.values().size());
 		
-		int j = 0 ;
-		for(Corsa c : corse.values()){
-			j+=c.getPassaggi().size(); 
-		}
+//		int j = 0 ;
+//		for(Corsa c : corse.values()){
+//			j+=c.getPassaggi().size(); 
+//		}
 //		System.out.println("passaggi "+j);
 
 		this.fermateSuLinea = new HashMap<>();
@@ -71,7 +79,7 @@ public class Model {
 			fermateSuLinea.put(f, new HashSet<FermataSuLinea>());
 	} 
 	
-	public void creaGrafo(LocalDateTime dataOra, int tempoSimulazione){
+	public void creaGrafo(LocalDateTime dataOra, int tempoSimulazione, boolean connesso){
 		
 		grafo = new DefaultDirectedWeightedGraph<FermataSuLinea,DefaultWeightedEdge>(DefaultWeightedEdge.class);
 		passaggiSimulazione = new ArrayList<>(); 
@@ -85,7 +93,6 @@ public class Model {
 					LocalTime lt1 = dataOra.toLocalTime() ;
 				
 					List<Passaggio> passaggi = c.getPassaggi() ;
-					
 					// aggiunta dei vertici
 					for(Passaggio p : passaggi){
 //						System.out.println(p.getOraPartenza().toSecondOfDay() + " / " + lt1.toSecondOfDay() + " / " + 
@@ -146,11 +153,46 @@ public class Model {
 					}
 				}
 			}
-			
 		}
-//		System.out.println("Grafo creato: " + grafo.vertexSet().size() + " nodi, " + grafo.edgeSet().size() + " archi");
+		
+		// aggiungo le fermate raggiungibili a piedi oppure per far diventare il grafo connesso ... 
+
 		ConnectivityInspector<FermataSuLinea,DefaultWeightedEdge> ci = new ConnectivityInspector<FermataSuLinea,DefaultWeightedEdge>(grafo);
-//		System.out.println(ci.isGraphConnected());
+		
+		double dMax=0 ;
+		if(connesso)
+			dMax = 3; // per evitare loop infiniti
+		else
+			dMax = 1.7 ; // mezz'ora a piedi
+		
+		double dist = 1.6 ; 
+		
+		while(!ci.isGraphConnected() && dist<dMax){	
+				for(FermataSuLinea i : grafo.vertexSet()){
+					for(FermataSuLinea j : grafo.vertexSet()){
+						
+						if(i!=null && j!=null && !i.equals(j) && !grafo.containsEdge(i, j)){
+								
+								double velocita = 5 ; // velocità a piedi
+								double distanza = LatLngTool.distance(i.getPosition(), j.getPosition(), LengthUnit.KILOMETER);
+								double tempo = (distanza / velocita) * 60 * 60;
+
+								if(distanza<dist){ // a tentativi in base al db
+									DefaultWeightedEdge link = grafo.addEdge(i, j);
+									if (link != null) {
+										grafo.setEdgeWeight(link, tempo);
+									}
+								}
+						}
+						
+					}
+				}
+			dist+=0.1;
+//			System.out.println(ci.isGraphConnected());
+		}
+
+		System.out.println("Grafo creato: " + grafo.vertexSet().size() + " nodi, " + grafo.edgeSet().size() + " archi");
+//		
 
 	}
 	
@@ -167,8 +209,13 @@ public class Model {
 
 		for (FermataSuLinea fslP : fermateSuLinea.get(partenza)) {
 			for (FermataSuLinea fslA : fermateSuLinea.get(arrivo)) {
+				
 				dijkstra = new DijkstraShortestPath<FermataSuLinea, DefaultWeightedEdge>(grafo, fslP, fslA);
 
+//				System.out.println(fslA.equals(fslP));				
+//				double distanza = LatLngTool.distance(fslA.getPosition(), fslP.getPosition(), LengthUnit.KILOMETER);
+//				System.out.println(distanza);
+				
 				pathTempoTotaleTemp = dijkstra.getPathLength();
 
 				if (pathTempoTotaleTemp < bestPathTempoTotale) {
@@ -190,24 +237,28 @@ public class Model {
 			risultato.append("Non è stato creato un percorso.");
 		else{
 			
-			risultato.append("Percorso:\n\n");
+			risultato.append("Percorso del flusso:\n\n");
 	
 			Linea lineaTemp = grafo.getEdgeSource(pathEdgeList.get(0)).getLinea();
-			risultato.append("Prendo Linea: " + lineaTemp.getShortName() + "\n[");
+			risultato.append("Da "+ grafo.getEdgeSource(pathEdgeList.get(0)).getName() +" Prendo Linea: " + lineaTemp.getShortName() + "\n[");
 	
 			for (DefaultWeightedEdge edge : pathEdgeList) {
-				risultato.append(grafo.getEdgeTarget(edge).getName());
-	
+				
 				if (!grafo.getEdgeTarget(edge).getLinea().equals(lineaTemp)) {
-					risultato.append("]\n\nCambio su Linea: " + grafo.getEdgeTarget(edge).getLinea() + "\n[");
+					risultato.setLength(risultato.length() - 2);
+					risultato.append("]\nVado a piedi alla Fermata:"+
+							grafo.getEdgeTarget(edge).getName()+
+							"\nCambio su Linea: " + grafo.getEdgeTarget(edge).getLinea() + "\n[");
+					
 					lineaTemp = grafo.getEdgeTarget(edge).getLinea();
 	
 				} else {
+					risultato.append(grafo.getEdgeTarget(edge).getName());
 					risultato.append(", ");
 				}
 			}
 			risultato.setLength(risultato.length() - 2);
-			risultato.append("]");
+			risultato.append("]\n\n");
 		}
 			return risultato.toString();
 	}
@@ -244,18 +295,57 @@ public class Model {
 		return this.agenzie;
 	}
 	
-	public void Simula(){
+	public void Simula(int capienza, int nPersFermata, int intervallo, double probLinea, double probFlusso, double probCambio, double coefficiente){
 		
-		if (pathEdgeList == null || pathEdgeList.size()==0)
-		{
-			System.out.println("noo");
-		}else{
-			Simulatore sim = new Simulatore(grafo, corse, passaggiSimulazione, fermateSuLinea) ;
+			sim = new Simulatore(grafo, linee, passaggiSimulazione, fermateSuLinea, pathEdgeList, 
+					capienza, nPersFermata, intervallo, probLinea, probFlusso, probCambio, coefficiente) ;
 			sim.run();
-			System.out.println("sod " + sim.getClientiSoddisfatti()) ;
-			System.out.println("parz " + sim.getClientiParzialmenteSoddisfatti()) ;
-			System.out.println("in " + sim.getClientiInsoddisfatti() ) ;
-		}
+//			System.out.println("sod " + sim.getClientiSoddisfatti()) ;
+//			System.out.println("parz " + sim.getClientiParzialmenteSoddisfatti()) ;
+//			System.out.println("in " + sim.getClientiInsoddisfatti() ) ;
 	}
+
+	public int getClientiSoddisfati() {
+		return this.sim.getClientiSoddisfatti() ;
+	}
+
+	public int getClientiParzSoddisfati() {
+		return this.sim.getClientiParzialmenteSoddisfatti() ;
+	}
+
+	public int getClientiInoddisfati() {
+		return this.sim.getClientiInsoddisfatti() ;
+	}
+
+	public List<FermataNumero> getSoddFermata() {
+		List<FermataNumero> fn = new ArrayList<>() ;
+		Map<Fermata, Integer> k = this.sim.getSoddFermata() ;
+		
+		for (Map.Entry<Fermata, Integer> entry : k.entrySet()){
+			if( entry.getValue() > 0 ){
+				fn.add(new FermataNumero(entry.getKey(), entry.getValue()));
+			}
+		}	
+		Collections.sort(fn);
+		return fn ;
+	}
+
+	public List<LineaNumero> getSoddLinea() {
+		
+		List<LineaNumero> ln = new ArrayList<>() ;
+		Map<Linea, Integer> k = this.sim.getSoddLinea() ;
+		
+		for (Map.Entry<Linea, Integer> entry : k.entrySet()){
+			if( entry.getValue() > 0 ){
+				ln.add(new LineaNumero(entry.getKey(), entry.getValue()));
+			}
+		}	
+		Collections.sort(ln);
+		return ln ;
+		
+	}
+	
+	
+	
 	
 }

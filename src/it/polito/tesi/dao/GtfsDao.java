@@ -129,7 +129,7 @@ public class GtfsDao {
 				
 				Fermata f = new Fermata(rs.getString("agencyId"), rs.getString("id"), rs.getInt("code"), 
 						rs.getString("name"), rs.getString("description"), 
-						 rs.getString("direction"), new LatLng(rs.getDouble("lat"),rs.getDouble("lat")), 
+						 rs.getString("direction"), new LatLng(rs.getDouble("lat"),rs.getDouble("lon")), 
 						 rs.getInt("zoneId"), rs.getString("url"),rs.getInt("locationType"));
 				stops.put(f.getId(), f) ;
 			}
