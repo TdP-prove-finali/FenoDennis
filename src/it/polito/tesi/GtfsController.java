@@ -263,11 +263,13 @@ public class GtfsController {
 							"\nClienti Non Soddisfatti: "+ind+
 							"\nTotali: "+tot+"\n");
 					
+					this.pieChart.setVisible(true);
 					this.pieChart.setData(FXCollections.observableArrayList(
 			                new PieChart.Data("Soddisfatti", sodd),
 			                new PieChart.Data("Parzialmente Soddisfatti", parz),
 			                new PieChart.Data("Non soddisfatti", ind)));
 					this.pieChart.setTitle("Soddisfazione Clienti");
+					this.pieChart.setLegendVisible(true);
 					
 					List<FermataNumero> g1 = this.model.getSoddFermata(); 
 					List<LineaNumero> g2 = this.model.getSoddLinea(); 
