@@ -204,7 +204,8 @@ public class GtfsController {
 		}
     }
 
-    @FXML
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	@FXML
     void doSimula(ActionEvent event) {
 
     	StringBuilder s = new StringBuilder();
@@ -277,7 +278,7 @@ public class GtfsController {
 					barChart.setVisible(true);
 					barChart.setTitle("Insoddisfatti per fermata");
 					
-			        XYChart.Series series1 = new XYChart.Series();
+					XYChart.Series series1 = new XYChart.Series();
 			        
 					result.append("\nClienti insoddisfatti per fermata."); 
 					for(int i = 0 ; i < 10 ; i++){
