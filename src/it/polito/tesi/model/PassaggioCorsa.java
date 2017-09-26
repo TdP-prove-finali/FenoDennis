@@ -1,9 +1,6 @@
 package it.polito.tesi.model;
 
-import java.time.LocalTime;
-
 import it.polito.tesi.bean.Corsa;
-import it.polito.tesi.bean.Fermata;
 import it.polito.tesi.bean.Passaggio;
 
 public class PassaggioCorsa extends Passaggio{

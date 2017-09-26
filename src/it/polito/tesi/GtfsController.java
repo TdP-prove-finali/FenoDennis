@@ -276,16 +276,16 @@ public class GtfsController {
 					List<LineaNumero> g2 = this.model.getSoddLinea(); 
 					
 					barChart.setVisible(true);
-					barChart.setTitle("Insoddisfatti per fermata");
+					barChart.setTitle("Insoddisfatti per Fermata");
 					
 					XYChart.Series series1 = new XYChart.Series();
 			        
-					result.append("\nClienti insoddisfatti per fermata."); 
-					for(int i = 0 ; i < 10 ; i++){
+					result.append("\nClienti insoddisfatti per Fermata."); 
+					for(int i = 0 ; i < g1.size() ; i++){
 						result.append("\n"+(i+1)+") "+g1.get(i).toString()) ;
 //				        series1.getData().add(new XYChart.Data(g1.get(i).getFermata().getName(), g1.get(i).getNumero()));
 				        series1.getData().add(new XYChart.Data(""+(i+1), g1.get(i).getNumero()));
-
+				        if(i==9)i=g1.size(); 
 					}
 					barChart.getData().clear(); 
 			        barChart.getData().add(series1);					
@@ -295,10 +295,11 @@ public class GtfsController {
 					
 			        XYChart.Series series2 = new XYChart.Series();
 			        
-					result.append("\n\nClienti insoddisfatti per linea."); 
-					for(int i = 0 ; i < 10 ; i++){
+					result.append("\n\nClienti insoddisfatti per Linea."); 
+					for(int i = 0 ; i < g2.size() ; i++){
 						result.append("\n"+(i+1)+") "+g2.get(i).toString()) ;
 				        series2.getData().add(new XYChart.Data(""+(i+1), g2.get(i).getNumero()));
+				        if(i==9)i=g2.size(); 
 					}
 					barChart2.getData().clear(); 
 			        barChart2.getData().add(series2);					

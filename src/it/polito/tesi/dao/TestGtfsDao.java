@@ -2,7 +2,6 @@ package it.polito.tesi.dao;
 
 import java.util.Map;
 
-import it.polito.tesi.bean.Agenzia;
 import it.polito.tesi.bean.Corsa;
 import it.polito.tesi.bean.Fermata;
 import it.polito.tesi.bean.Linea;
@@ -14,7 +13,7 @@ public class TestGtfsDao {
 		
 		GtfsDao dao = new GtfsDao(); 
 		
-		Map<String, Agenzia> agenzie = dao.getAllAgencies(); 
+//		Map<String, Agenzia> agenzie = dao.getAllAgencies(); 
 		
 //		for(Agenzia a : agenzie.values()) System.out.println(a.toString());
 		

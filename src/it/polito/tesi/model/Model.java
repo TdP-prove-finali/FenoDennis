@@ -234,7 +234,7 @@ public class Model {
 		StringBuilder risultato = new StringBuilder();
 
 		if (pathEdgeList == null || pathEdgeList.size()==0)
-			risultato.append("Non è stato creato un percorso.");
+			risultato.append("Non è stato creato un percorso.\n\n");
 		else{
 			
 			risultato.append("Percorso del flusso:\n\n");

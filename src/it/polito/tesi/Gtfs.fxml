@@ -164,8 +164,8 @@
    <right>
       <VBox alignment="TOP_CENTER" prefWidth="300.0" spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <PieChart fx:id="pieChart" />
-            <BarChart fx:id="barChart" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" horizontalZeroLineVisible="false" visible="false">
+            <PieChart fx:id="pieChart" prefHeight="500.0" prefWidth="290.0" />
+            <BarChart fx:id="barChart" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" horizontalZeroLineVisible="false" legendVisible="false" visible="false">
               <xAxis>
                 <CategoryAxis side="BOTTOM" />
               </xAxis>
@@ -173,7 +173,7 @@
                 <NumberAxis side="LEFT" />
               </yAxis>
             </BarChart>
-            <BarChart fx:id="barChart2" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" horizontalZeroLineVisible="false" visible="false">
+            <BarChart fx:id="barChart2" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" horizontalZeroLineVisible="false" legendVisible="false" visible="false">
               <xAxis>
                 <CategoryAxis side="BOTTOM" />
               </xAxis>
